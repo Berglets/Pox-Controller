@@ -82,7 +82,20 @@ class MyComponent (object):
     else:
         r.hwsrc = mac_h6
         h5_is_next_server = True
-
+    
+    ether = ethernet()
+    ether.type = ethernet.ARP_TYPE
+    ether.dst = a.hwsrc
+    ether.src = r.hwsrc
+    ether.payload = r
+    
+    # send message to host who wants mac  
+    msg = of.ofp_packet_out()
+    msg.data = ether.pack()
+    msg.actions.append(of.ofp_action_output(port = of.OFPP_IN_PORT))
+    msg.in_port = inport
+    connection.send(msg)
+    
 
     
     """
