@@ -29,6 +29,8 @@ log = core.getLogger()
 # Connection for s1
 connection = None
 h5_is_next_server = True
+mac_h5 = "00:00:00:00:00:05"
+mac_h6 = "00:00:00:00:00:06"
 
 def _go_up (event):
   log.info("Up Event: Skeleton application ready (to do nothing).")
@@ -56,15 +58,30 @@ class MyComponent (object):
       log.warning("Ignoring unparsed packet")
       return
   
-    log.debug("Got packet: " + str(packet))
+    log.info("Got packet: " + str(packet))
 
     if packet.type != packet.ARP_TYPE: return
     if packet.payload.opcode != arp.REQUEST: return
     a = packet.find('arp')
 
-    log.debug("%s ARP %s %s => %s", dpid_to_str(dpid),
+    log.info("%s ARP %s %s => %s", 1,
       {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
       'op:%i' % (a.opcode,)), str(a.protosrc), str(a.protodst))
+      
+    if(str(a.protodst) != "10.0.0.10"): return
+    
+    r = arp()
+    r.opcode = arp.REPLY
+    r.protodst = a.protosrc
+    r.protosrc = a.protodst
+    r.hwdst = a.hwsrc # where reply is going
+    # Give requested mac address (round robin)
+    if h5_is_next_server:
+        r.hwsrc = mac_h5
+        h5_is_next_server = False
+    else:
+        r.hwsrc = mac_h6
+        h5_is_next_server = True
 
 
     
