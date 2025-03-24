@@ -52,6 +52,11 @@ class MyComponent (object):
 
   # ARP requests
   def _handle_PacketIn (self, event):
+    global connection
+    global h5_is_next_server
+    global mac_h5
+    global mac_h6
+      
     inport = event.port
     packet = event.parsed
     if not packet.parsed:
