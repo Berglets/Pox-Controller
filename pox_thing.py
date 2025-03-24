@@ -31,8 +31,8 @@ log = core.getLogger()
 # Connection for s1
 connection = None
 h5_is_next_server = True
-mac_h5 = "00:00:00:00:00:05"
-mac_h6 = "00:00:00:00:00:06"
+mac_h5 = EthAddr("00:00:00:00:00:05")
+mac_h6 = EthAddr("00:00:00:00:00:06")
 
 def _go_up (event):
   log.info("Up Event: Skeleton application ready (to do nothing).")
