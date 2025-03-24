@@ -40,7 +40,7 @@ class MyComponent (object):
     core.openflow.addListeners(self)
 
   def _handle_ConnectionUp (self, event):
-    log.debug("Switch %s has come up.", dpid_to_str(event.dpid))
+    log.debug("Switch has come up " + str(event.connection.dpid))
     global connection 
     connection = event.connection
     
