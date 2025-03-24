@@ -23,12 +23,20 @@ import pox.lib.recoco as recoco               # Multitasking library
 # Create a logger for this component
 log = core.getLogger()
 
+# Connection for s1
+connection = None
+
 def _go_up (event):
-  # Event handler called when POX goes into up state
-  # (we actually listen to the event in launch() below)
-  log.info("Skeleton application ready (to do nothing).")
+  log.info("Up Event: Skeleton application ready (to do nothing).")
+
+def _handle_ConnectionUp (event):
+  global connection
+  connection = event.connection 
+  log.info("Conection: " + connection.dpid)
 
 # called by POX in command line
 @poxutil.eval_args
 def launch ():
   core.addListenerByName("UpEvent", _go_up)
+  core.addListenerByName("ConnectionUp", _handle_ConnectionUp)
+  
