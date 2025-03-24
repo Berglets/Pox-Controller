@@ -69,6 +69,7 @@ class MyComponent (object):
   
     log.info("Got packet: " + str(packet))
 
+    # skip if not arp request
     if packet.type != packet.ARP_TYPE: return
     if packet.payload.opcode != arp.REQUEST: return
     a = packet.find('arp')
@@ -77,58 +78,85 @@ class MyComponent (object):
       {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
       'op:%i' % (a.opcode,)), str(a.protosrc), str(a.protodst))
       
-    if(str(a.protodst) != "10.0.0.10"): return
-    
-    r = arp()
-    r.opcode = arp.REPLY
-    r.protodst = a.protosrc
-    r.protosrc = a.protodst
-    r.hwdst = a.hwsrc # where reply is going
-    # Give requested mac address (round robin)
-    outport = None
-    dst_real_addr = None
-    if h5_is_next_server:
+    if(str(a.protodst) == "10.0.0.10"):
+      r = arp()
+      r.opcode = arp.REPLY
+      r.protodst = a.protosrc
+      r.protosrc = a.protodst
+      r.hwdst = a.hwsrc 
+      # Give requested mac address (round robin)
+      outport = None # relative to s1 outport to 10.0.0.10 for this host
+      dst_real_addr = None
+      if h5_is_next_server:
         r.hwsrc = mac_h5
         h5_is_next_server = False
         outport = 5
         dst_real_addr = IPAddr("10.0.0.5")
-    else:
+      else:
         r.hwsrc = mac_h6
         h5_is_next_server = True
         outport = 6
         dst_real_addr = IPAddr("10.0.0.6")
 
+      ether = ethernet()
+      ether.type = ethernet.ARP_TYPE
+      ether.dst = a.hwsrc
+      ether.src = r.hwsrc
+      ether.set_payload(r)
     
-    ether = ethernet()
-    ether.type = ethernet.ARP_TYPE
-    ether.dst = a.hwsrc
-    ether.src = r.hwsrc
-    ether.set_payload(r)
+      # send message to host who wants mac  
+      msg = of.ofp_packet_out()
+      msg.data = ether.pack()
+      msg.actions.append(of.ofp_action_output(port = of.OFPP_IN_PORT))
+      msg.in_port = inport
+      connection.send(msg)
     
-    # send message to host who wants mac  
-    msg = of.ofp_packet_out()
-    msg.data = ether.pack()
-    msg.actions.append(of.ofp_action_output(port = of.OFPP_IN_PORT))
-    msg.in_port = inport
-    connection.send(msg)
+      # now push rules for client to server
+      msg = of.ofp_flow_mod()
+      msg.match.dl_type = 0x800
+      msg.match.nw_dst = IPAddr("10.0.0.10")
+      msg.match.in_port = inport
+      msg.actions.append(of.ofp_action_output(port = outport))
+      connection.send(msg)
     
-    log.info("in_port to s1: " + inport)
+      # rules for server to client
+      msg = of.ofp_flow_mod()
+      msg.match.dl_type = 0x800
+      msg.match.nw_dst = a.protosrc
+      msg.match.nw_src = dst_real_addr
+      msg.match.in_port = outport
+      msg.actions.append(of.ofp_action_output(port = inport))
+      connection.send(msg)
     
-    # now push rules for client to server
-    msg = of.ofp_flow_mod()
-    msg.match.dl_type = 0x800
-    msg.match.nw_dst = IPAddr("10.0.0.10")
-    msg.match.in_port = inport
-    msg.actions.append(of.ofp_action_output(port = outport))
-    connection.send(msg)
+    else: # server wants to know client mac
+      r = arp()
+      r.opcode = arp.REPLY
+      r.protodst = a.protosrc
+      r.protosrc = a.protodst
+      r.hwdst = a.hwsrc 
+      
+      if str(a.protodst) == '10.0.0.1':
+        r.hwsrc = EthAddr("00:00:00:00:00:01")
+      elif str(a.protodst) == '10.0.0.2':
+        r.hwsrc = EthAddr("00:00:00:00:00:02")  
+      elif str(a.protodst) == '10.0.0.3':
+        r.hwsrc = EthAddr("00:00:00:00:00:03")  
+      elif str(a.protodst) == '10.0.0.4':
+        r.hwsrc = EthAddr("00:00:00:00:00:04")  
+      else: 
+        return
+
+      ether = ethernet()
+      ether.type = ethernet.ARP_TYPE
+      ether.dst = a.hwsrc
+      ether.src = r.hwsrc
+      ether.set_payload(r)
     
-    # rules for server to client
-    msg = of.ofp_flow_mod()
-    msg.match.dl_type = 0x800
-    msg.match.nw_dst = a.protosrc
-    msg.match.nw_src = dst_real_addr
-    msg.match.in_port = outport
-    msg.actions.append(of.ofp_action_output(port = inport))
-    connection.send(msg)
+      # send message to server who wants mac  
+      msg = of.ofp_packet_out()
+      msg.data = ether.pack()
+      msg.actions.append(of.ofp_action_output(port = of.OFPP_IN_PORT))
+      msg.in_port = inport
+      connection.send(msg)
     
     
