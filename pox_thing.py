@@ -126,6 +126,7 @@ class MyComponent (object):
       msg.match.nw_dst = a.protosrc
       msg.match.nw_src = dst_real_addr
       msg.match.in_port = outport
+      msg.actions.append(of.ofp_action_nw_addr.set_src(IPAddr("10.0.0.10"))) # remove if no worky should allow server to ping directly
       msg.actions.append(of.ofp_action_output(port = inport))
       connection.send(msg)
       
