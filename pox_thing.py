@@ -11,25 +11,6 @@ arguments and starts off your component (e.g., by listening to events).
 
 """
 
-#Testing
-import struct
-import operator
-import collections
-from itertools import chain, repeat
-import sys
-from pox.lib.packet.packet_base import packet_base
-from pox.lib.packet.ethernet import ethernet
-from pox.lib.packet.vlan import vlan
-from pox.lib.packet.ipv4 import ipv4
-from pox.lib.packet.udp import udp
-from pox.lib.packet.tcp import tcp
-from pox.lib.packet.icmp import icmp
-from pox.lib.packet.arp import arp
-
-from pox.lib.addresses import *
-from pox.lib.util import assert_type
-from pox.lib.util import initHelper
-from pox.lib.util import hexdump
 
 # Import some POX stuff
 from pox.core import core                     # Main POX object
@@ -38,6 +19,7 @@ import pox.lib.packet as pkt                  # Packet parsing/construction
 from pox.lib.addresses import EthAddr, IPAddr # Address types
 import pox.lib.util as poxutil                # Various util functions
 import pox.lib.revent as revent               # Event library
+import pox.lib.revent.
 import pox.lib.recoco as recoco               # Multitasking library
 from pox.lib.packet.arp import arp            # ARP 
 from pox.lib.util import dpid_to_str, str_to_bool
@@ -62,6 +44,13 @@ def launch ():
   core.addListenerByName("UpEvent", _go_up)
   core.registerNew(MyComponent)
   
+  ip_to_lookup = "10.0.0.1"
+  mac_address = get_mac_of_ip(ip_to_lookup)
+  if mac_address:
+    log.info(f"The MAC address for IP {ip_to_lookup} is {mac_address}")
+  else:
+    log.info(f"Could not find MAC address for IP {ip_to_lookup}")
+  
 class MyComponent (object):
   def __init__ (self):
     core.openflow.addListeners(self)
@@ -70,6 +59,18 @@ class MyComponent (object):
     log.info("Switch has come up " + str(event.connection.dpid))
     global connection 
     connection = event.connection
+    
+def get_mac_of_ip(ip_address):
+    """Retrieve the MAC address of a host from its IP address using the discovery component."""
+    discovery = core.getComponent('discovery')
+    # Use the discovery component's 'get_host_mac' method to get the MAC address.
+    host_mac = discovery.get_host_mac(IPAddr(ip_address))
+    if host_mac:
+        return EthAddr(host_mac)
+    else:
+        log.error("MAC address not found for IP %s", ip_address)
+        return None
+    
 
   # ARP requests
   def _handle_PacketIn (self, event):
@@ -113,7 +114,7 @@ class MyComponent (object):
     ether.type = ethernet.ARP_TYPE
     ether.dst = a.hwsrc
     ether.src = r.hwsrc
-    ether.payload = r
+    ether.set_payload(r)
     
     # send message to host who wants mac  
     msg = of.ofp_packet_out()
