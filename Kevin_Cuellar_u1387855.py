@@ -38,34 +38,6 @@ class ArpComponent (object):
     global connection 
     connection = event.connection
 
-  # ARP requests
-  def _handle_PacketIn (self, event):
-    inport = event.port
-    packet = event.parsed
-    
-    if not packet.parsed:
-      log.warning("Ignoring unparsed packet")
-      return
-  
-    log.debug("Got packet: " + str(packet))
-
-    # return if not an arp request
-    if packet.type != packet.ARP_TYPE: 
-      return
-    if packet.payload.opcode != arp.REQUEST: 
-      return
-  
-    a = packet.find('arp')
-    
-    log.debug("%s ARP %s %s => %s", 1,
-      {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
-      'op:%i' % (a.opcode,)), str(a.protosrc), str(a.protodst))
-      
-    if(str(a.protodst) == "10.0.0.10"):
-      client_to_server(inport, a)
-    else: # server wants to know client mac
-      server_to_client(inport, a)
-
   # inport = port the packet came into switch
   # a = arp request packet
   def client_to_server(inport, a):
@@ -169,5 +141,32 @@ class ArpComponent (object):
     msg.in_port = inport
     connection.send(msg)
 
+  # ARP requests
+  def _handle_PacketIn (self, event):
+    inport = event.port
+    packet = event.parsed
+    
+    if not packet.parsed:
+      log.warning("Ignoring unparsed packet")
+      return
+  
+    log.debug("Got packet: " + str(packet))
+
+    # return if not an arp request
+    if packet.type != packet.ARP_TYPE: 
+      return
+    if packet.payload.opcode != arp.REQUEST: 
+      return
+  
+    a = packet.find('arp')
+    
+    log.debug("%s ARP %s %s => %s", 1,
+      {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
+      'op:%i' % (a.opcode,)), str(a.protosrc), str(a.protodst))
+      
+    if(str(a.protodst) == "10.0.0.10"):
+      client_to_server(inport, a)
+    else: # server wants to know client mac
+      server_to_client(inport, a)
     
     
