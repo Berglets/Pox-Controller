@@ -79,6 +79,24 @@ class MyComponent (object):
       'op:%i' % (a.opcode,)), str(a.protosrc), str(a.protodst))
       
     if(str(a.protodst) == "10.0.0.10"):
+      # now push rules for client to server
+      msg = of.ofp_flow_mod()
+      msg.match.dl_type = 0x800
+      msg.match.nw_dst = IPAddr("10.0.0.10")
+      msg.match.in_port = inport
+      msg.actions.append(of.ofp_action_output(port = outport))
+      connection.send(msg)
+    
+      # rules for server to client
+      msg = of.ofp_flow_mod()
+      msg.match.dl_type = 0x800
+      msg.match.nw_dst = a.protosrc
+      msg.match.nw_src = dst_real_addr
+      msg.match.in_port = outport
+      msg.actions.append(of.ofp_action_output(port = inport))
+      connection.send(msg)
+      
+      # send arp back
       r = arp()
       r.opcode = arp.REPLY
       r.protodst = a.protosrc
@@ -109,23 +127,6 @@ class MyComponent (object):
       msg.data = ether.pack()
       msg.actions.append(of.ofp_action_output(port = of.OFPP_IN_PORT))
       msg.in_port = inport
-      connection.send(msg)
-    
-      # now push rules for client to server
-      msg = of.ofp_flow_mod()
-      msg.match.dl_type = 0x800
-      msg.match.nw_dst = IPAddr("10.0.0.10")
-      msg.match.in_port = inport
-      msg.actions.append(of.ofp_action_output(port = outport))
-      connection.send(msg)
-    
-      # rules for server to client
-      msg = of.ofp_flow_mod()
-      msg.match.dl_type = 0x800
-      msg.match.nw_dst = a.protosrc
-      msg.match.nw_src = dst_real_addr
-      msg.match.in_port = outport
-      msg.actions.append(of.ofp_action_output(port = inport))
       connection.send(msg)
     
     else: # server wants to know client mac
