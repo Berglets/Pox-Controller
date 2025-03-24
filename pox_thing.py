@@ -19,7 +19,6 @@ import pox.lib.packet as pkt                  # Packet parsing/construction
 from pox.lib.addresses import EthAddr, IPAddr # Address types
 import pox.lib.util as poxutil                # Various util functions
 import pox.lib.revent as revent               # Event library
-import pox.lib.revent.
 import pox.lib.recoco as recoco               # Multitasking library
 from pox.lib.packet.arp import arp            # ARP 
 from pox.lib.util import dpid_to_str, str_to_bool
@@ -44,21 +43,10 @@ def launch ():
   core.addListenerByName("UpEvent", _go_up)
   core.registerNew(MyComponent)
   
-  ip_to_lookup = "10.0.0.1"
-  mac_address = get_mac_of_ip(ip_to_lookup)
   if mac_address:
     log.info(f"The MAC address for IP {ip_to_lookup} is {mac_address}")
   else:
     log.info(f"Could not find MAC address for IP {ip_to_lookup}")
-  
-class MyComponent (object):
-  def __init__ (self):
-    core.openflow.addListeners(self)
-
-  def _handle_ConnectionUp (self, event):
-    log.info("Switch has come up " + str(event.connection.dpid))
-    global connection 
-    connection = event.connection
     
 def get_mac_of_ip(ip_address):
     """Retrieve the MAC address of a host from its IP address using the discovery component."""
@@ -70,7 +58,17 @@ def get_mac_of_ip(ip_address):
     else:
         log.error("MAC address not found for IP %s", ip_address)
         return None
-    
+  
+class MyComponent (object):
+  def __init__ (self):
+    core.openflow.addListeners(self)
+
+  def _handle_ConnectionUp (self, event):
+    log.info("Switch has come up " + str(event.connection.dpid))
+    global connection 
+    connection = event.connection
+    ip_to_lookup = "10.0.0.1"
+    mac_address = get_mac_of_ip(ip_to_lookup)
 
   # ARP requests
   def _handle_PacketIn (self, event):
