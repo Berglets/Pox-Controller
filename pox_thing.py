@@ -85,12 +85,19 @@ class MyComponent (object):
     r.protosrc = a.protodst
     r.hwdst = a.hwsrc # where reply is going
     # Give requested mac address (round robin)
+    outport = None
+    dst_real_addr = None
     if h5_is_next_server:
         r.hwsrc = mac_h5
         h5_is_next_server = False
+        outport = 5
+        dst_real_addr = IPAddr("10.0.0.5")
     else:
         r.hwsrc = mac_h6
         h5_is_next_server = True
+        outport = 6
+        dst_real_addr = IPAddr("10.0.0.6")
+
     
     ether = ethernet()
     ether.type = ethernet.ARP_TYPE
@@ -105,16 +112,23 @@ class MyComponent (object):
     msg.in_port = inport
     connection.send(msg)
     
-
+    log.info("in_port to s1: " + inport)
     
-    """
-    # One thing at a time...
-msg = of.ofp_flow_mod()
-msg.priority = 42
-msg.match.dl_type = 0x800
-msg.match.nw_dst = IPAddr("192.168.101.101")
-msg.match.tp_dst = 80
-msg.actions.append(of.ofp_action_output(port = 4))
-self.connection.send(msg)
+    # now push rules for client to server
+    msg = of.ofp_flow_mod()
+    msg.match.dl_type = 0x800
+    msg.match.nw_dst = IPAddr("10.0.0.10")
+    msg.match.in_port = inport
+    msg.actions.append(of.ofp_action_output(port = outport))
+    connection.send(msg)
     
-  """
+    # rules for server to client
+    msg = of.ofp_flow_mod()
+    msg.match.dl_type = 0x800
+    msg.match.nw_dst = a.protosrc
+    msg.match.nw_src = dst_real_addr
+    msg.match.in_port = outport
+    msg.actions.append(of.ofp_action_output(port = inport))
+    connection.send(msg)
+    
+    
