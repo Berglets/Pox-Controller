@@ -29,14 +29,19 @@ connection = None
 def _go_up (event):
   log.info("Up Event: Skeleton application ready (to do nothing).")
 
-def _handle_ConnectionUp (event):
-  global connection
-  connection = event.connection 
-  log.info("Conection: " + connection.dpid)
-
 # called by POX in command line
 @poxutil.eval_args
 def launch ():
   core.addListenerByName("UpEvent", _go_up)
-  core.addListenerByName("ConnectionUp", _handle_ConnectionUp)
+  core.registerNew(MyComponent)
+  
+class MyComponent (object):
+  def __init__ (self):
+    core.openflow.addListeners(self)
+
+  def _handle_ConnectionUp (self, event):
+    log.debug("Switch %s has come up.", dpid_to_str(event.dpid))
+    global connection 
+    connection = event.connection
+    
   
