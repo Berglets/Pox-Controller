@@ -116,6 +116,7 @@ class MyComponent (object):
       msg.match.dl_type = 0x800
       msg.match.nw_dst = IPAddr("10.0.0.10")
       msg.match.in_port = inport
+      msg.actions.append(of.ofp_action_nw_addr.set_dst(dst_real_addr))
       msg.actions.append(of.ofp_action_output(port = outport))
       connection.send(msg)
     
