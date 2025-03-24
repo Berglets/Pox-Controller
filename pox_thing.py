@@ -42,11 +42,6 @@ def _go_up (event):
 def launch ():
   core.addListenerByName("UpEvent", _go_up)
   core.registerNew(MyComponent)
-  
-  if mac_address:
-    log.info(f"The MAC address for IP {ip_to_lookup} is {mac_address}")
-  else:
-    log.info(f"Could not find MAC address for IP {ip_to_lookup}")
     
 def get_mac_of_ip(ip_address):
     """Retrieve the MAC address of a host from its IP address using the discovery component."""
@@ -69,6 +64,10 @@ class MyComponent (object):
     connection = event.connection
     ip_to_lookup = "10.0.0.1"
     mac_address = get_mac_of_ip(ip_to_lookup)
+    if mac_address:
+      log.info(f"The MAC address for IP {ip_to_lookup} is {mac_address}")
+    else:
+      log.info(f"Could not find MAC address for IP {ip_to_lookup}")
 
   # ARP requests
   def _handle_PacketIn (self, event):
