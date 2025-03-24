@@ -40,8 +40,29 @@ class MyComponent (object):
     core.openflow.addListeners(self)
 
   def _handle_ConnectionUp (self, event):
-    log.debug("Switch has come up " + str(event.connection.dpid))
+    log.info("Switch has come up " + str(event.connection.dpid))
     global connection 
     connection = event.connection
     
-  
+  def _handle_PacketIn (self, event):
+    inport = event.port
+    packet = event.parsed
+    if not packet.parsed:
+      log.warning("Ignoring unparsed packet")
+      return
+    log.info("stuff" + str(packet))
+
+    a = packet.find('arp')
+    if not a: return
+    
+    """
+    # One thing at a time...
+msg = of.ofp_flow_mod()
+msg.priority = 42
+msg.match.dl_type = 0x800
+msg.match.nw_dst = IPAddr("192.168.101.101")
+msg.match.tp_dst = 80
+msg.actions.append(of.ofp_action_output(port = 4))
+self.connection.send(msg)
+    
+  """
