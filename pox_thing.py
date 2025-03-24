@@ -42,17 +42,7 @@ def _go_up (event):
 def launch ():
   core.addListenerByName("UpEvent", _go_up)
   core.registerNew(MyComponent)
-    
-def get_mac_of_ip(ip_address):
-    """Retrieve the MAC address of a host from its IP address using the discovery component."""
-    discovery = core.getComponent('discovery')
-    # Use the discovery component's 'get_host_mac' method to get the MAC address.
-    host_mac = discovery.get_host_mac(IPAddr(ip_address))
-    if host_mac:
-        return EthAddr(host_mac)
-    else:
-        log.error("MAC address not found for IP %s", ip_address)
-        return None
+  
   
 class MyComponent (object):
   def __init__ (self):
@@ -62,12 +52,7 @@ class MyComponent (object):
     log.info("Switch has come up " + str(event.connection.dpid))
     global connection 
     connection = event.connection
-    ip_to_lookup = "10.0.0.1"
-    mac_address = get_mac_of_ip(ip_to_lookup)
-    if mac_address:
-      log.info(f"The MAC address for IP {ip_to_lookup} is {mac_address}")
-    else:
-      log.info(f"Could not find MAC address for IP {ip_to_lookup}")
+
 
   # ARP requests
   def _handle_PacketIn (self, event):
