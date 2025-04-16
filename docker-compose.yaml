@@ -1,0 +1,111 @@
+
+services:
+  r1:
+    build: .
+    stdin_open: true
+    tty: true
+    cap_add:
+      - ALL
+    privileged: true
+    networks:
+      net14:
+        ipv4_address: 10.0.14.4
+      net21:
+        ipv4_address: 10.0.21.4
+      net41:
+        ipv4_address: 10.0.41.4
+
+  r3:
+    build: .
+    stdin_open: true
+    tty: true
+    cap_add:
+      - ALL
+    privileged: true
+    networks:
+      net15:
+        ipv4_address: 10.0.15.4
+      net23:
+        ipv4_address: 10.0.23.4
+      net43:
+        ipv4_address: 10.0.43.4
+
+  r2:
+    build: .
+    stdin_open: true
+    tty: true
+    cap_add:
+      - ALL
+    privileged: true
+    networks:
+      net21:
+        ipv4_address: 10.0.21.5
+      net23:
+        ipv4_address: 10.0.23.5     
+
+  r4:
+    build: .
+    stdin_open: true
+    tty: true
+    cap_add:
+      - ALL
+    privileged: true
+    networks:
+      net41:
+        ipv4_address: 10.0.41.5
+      net43:
+        ipv4_address: 10.0.43.5    
+    
+  ha:
+    build: .
+    stdin_open: true
+    tty: true
+    cap_add:
+      - ALL
+    privileged: true    
+    networks:
+      net14:
+        ipv4_address: 10.0.14.3
+
+  hb:
+    build: .
+    stdin_open: true
+    tty: true
+    cap_add:
+      - ALL
+    privileged: true    
+    networks:
+      net15:
+        ipv4_address: 10.0.15.3
+
+networks:
+  net14:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.14.0/24
+  net15:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.15.0/24
+  net21:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.21.0/24
+  net23:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.23.0/24
+  net41:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.41.0/24
+  net43:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.43.0/24
