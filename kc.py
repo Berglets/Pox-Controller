@@ -13,16 +13,16 @@ parser.add_option('-a', '--all', action='store_true', dest='all', help='complete
 (options, args) = parser.parse_args()
 
 sdir = os.path.dirname(os.path.abspath(__file__)) # script directory
-if sdir == '/':
-    sdir = ''
-wdir = sdir + "/cs4480-2025-s/pa3/part1/" # working directory
+wdir = os.path.join(sdir, "cs4480-2025-s/pa3/part1/") # working directory
 
 if options.docker or options.all: 
     subprocess.run("git clone https://gitlab.flux.utah.edu/teach-studentview/cs4480-2025-s.git", shell=True, check=True, cwd=sdir)
     subprocess.run("./dockersetup", shell=True, check=True, cwd=wdir)
 if options.topology or options.all:
-    subprocess.run("sudo bash", shell=True, check=True, cwd=wdir)
-    subprocess.run("mv docker-compose-new.yaml ./cs4480-2025-s/pa3/part1/docker-compose.yaml", shell=True, check=True, cwd=sdir)
+    subprocess.run("sudo bash", shell=True, check=True, cwd=sdir)
+    new_yaml = os.path.join(sdir, "docker-compose-new.yaml")
+    old_yaml = os.path.join(wdir, "docker-compose.yaml")
+    subprocess.run(f"mv {new_yaml} {old_yaml}", shell=True, check=True, cwd=sdir)
     subprocess.run("docker compose up -d", shell=True, check=True, cwd=wdir)
 if options.ends or options.all:
     subprocess.run("docker exec -it part1-ha-1 route add -net 10.0.15.0/24 gw 10.0.14.4", shell=True, check=True, cwd=wdir)
