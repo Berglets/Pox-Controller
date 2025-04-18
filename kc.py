@@ -2,6 +2,8 @@ from optparse import OptionParser
 import subprocess
 import os
 
+# NOTE: YOU HAVE TO $sudo bash 
+
 # Start of program execution
 parser = OptionParser()
 parser.add_option('-d', '--docker', action='store_true', dest='docker', help='0. clone class files and start up docker') 
