@@ -26,12 +26,12 @@ if options.topology or options.all:
     subprocess.run(f"mv {new_yaml} {old_yaml}", shell=True, check=True, cwd=sdir)
     subprocess.run("sudo docker compose up -d", shell=True, check=True, cwd=wdir)
 if options.ends or options.all:
-    subprocess.run("docker exec -it part1-ha-1 route add -net 10.0.15.0/24 gw 10.0.14.4", shell=True, check=True, cwd=wdir)
-    subprocess.run("docker exec -it part1-hb-1 route add -net 10.0.14.0/24 gw 10.0.15.4", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-ha-1 route add -net 10.0.15.0/24 gw 10.0.14.4", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-hb-1 route add -net 10.0.14.0/24 gw 10.0.15.4", shell=True, check=True, cwd=wdir)
 if options.ospf or options.all:
     containers = ["part1-r1-1", "part1-r2-1", "part1-r3-1", "part1-r4-1"]
     for container in containers:
-        r_cmd = f"docker exec -it {container} "
+        r_cmd = f"sudo docker exec -it {container} "
         # install ospf
         subprocess.run(r_cmd + "apt -y install curl", shell=True, check=True, cwd=wdir)
         subprocess.run(r_cmd + "apt -y install gnupg", shell=True, check=True, cwd=wdir)
@@ -59,18 +59,18 @@ if options.ospf or options.all:
         subprocess.run(r_cmd + "vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
 if options.path == "north":
     # r1
-    subprocess.run("docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth1' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
-    subprocess.run("docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth1' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
     # r3
-    subprocess.run("docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
-    subprocess.run("docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth0' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth0' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
 if options.path == "south":
     # r1
-    subprocess.run("docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth1' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
-    subprocess.run("docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth1' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
     # r3
-    subprocess.run("docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
-    subprocess.run("docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth0' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth0' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
 
     
     
