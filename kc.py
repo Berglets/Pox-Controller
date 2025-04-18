@@ -19,11 +19,10 @@ if options.docker or options.all:
     subprocess.run("git clone https://gitlab.flux.utah.edu/teach-studentview/cs4480-2025-s.git", shell=True, check=True, cwd=sdir)
     subprocess.run("./dockersetup", shell=True, check=True, cwd=wdir)
 if options.topology or options.all:
-    subprocess.run("sudo bash", shell=True, check=True, cwd=sdir)
     new_yaml = os.path.join(sdir, "docker-compose-new.yaml")
     old_yaml = os.path.join(wdir, "docker-compose.yaml")
     subprocess.run(f"mv {new_yaml} {old_yaml}", shell=True, check=True, cwd=sdir)
-    subprocess.run("docker compose up -d", shell=True, check=True, cwd=wdir)
+    subprocess.run("sudo docker compose up -d", shell=True, check=True, cwd=wdir)
 if options.ends or options.all:
     subprocess.run("docker exec -it part1-ha-1 route add -net 10.0.15.0/24 gw 10.0.14.4", shell=True, check=True, cwd=wdir)
     subprocess.run("docker exec -it part1-hb-1 route add -net 10.0.14.0/24 gw 10.0.15.4", shell=True, check=True, cwd=wdir)
