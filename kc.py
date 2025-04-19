@@ -73,6 +73,7 @@ if options.ospf or options.all:
 if options.path == "north":
     e1, e2, e3, e4 = getEthMappings()
     # r1
+    print("TEST: -c 'interface {e1}' -c ")
     subprocess.run(f"sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface {e1}' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
     subprocess.run(f"sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface {e2}' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
     # r3
