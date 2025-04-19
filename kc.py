@@ -10,10 +10,10 @@ def getEthMappings():
     cmd4 = "docker exec part1-r3-1 ip -o -4 addr show | grep 10.0.43.4 | awk '{{print $2}}'"  # r3 south
     
     # string is eth0, eth1, or eth2
-    e1 = subprocess.check_output(cmd1, shell=True, check=True).decode().strip() 
-    e2 = subprocess.check_output(cmd2, shell=True, check=True).decode().strip() 
-    e3 = subprocess.check_output(cmd3, shell=True, check=True).decode().strip() 
-    e4 = subprocess.check_output(cmd4, shell=True, check=True).decode().strip() 
+    e1 = subprocess.check_output(cmd1, shell=True).decode().strip() 
+    e2 = subprocess.check_output(cmd2, shell=True).decode().strip() 
+    e3 = subprocess.check_output(cmd3, shell=True).decode().strip() 
+    e4 = subprocess.check_output(cmd4, shell=True).decode().strip() 
     
     return e1, e2, e3, e4
 
