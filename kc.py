@@ -18,7 +18,9 @@ def getEthMappings():
     return e1, e2, e3, e4
 
 # Start of program execution
-parser = OptionParser()
+parser = OptionParser(
+    description = "This script automates docker topology and OSPF configurations. Make sure docker-compose-new.yaml is in the same directory as this script. Run with --all to run a complete startup from a new POWDER VM. Then you can run -p north or -p south to switch routing paths"
+)
 parser.add_option('-d', '--docker', action='store_true', dest='docker', help='0. clone class files and start up docker') 
 parser.add_option('-t', '--topology', action='store_true', dest='topology', help='1. create network topology using Docker containers') 
 parser.add_option('-o', '--ospf', action='store_true', dest='ospf', help='2. start OSPF daemons on each router') 
