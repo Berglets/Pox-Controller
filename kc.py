@@ -2,7 +2,20 @@ from optparse import OptionParser
 import subprocess
 import os
 
-# NOTE: YOU HAVE TO $sudo bash 
+# get mappings from interface ip to eth id
+def getEthMappings():
+    cmd1 = "docker exec part1-r1-1 ip -o -4 addr show | grep 10.0.21.4 | awk '{{print $2}}'"  # r1 north
+    cmd2 = "docker exec part1-r1-1 ip -o -4 addr show | grep 10.0.41.4 | awk '{{print $2}}'"  # r1 south 
+    cmd3 = "docker exec part1-r3-1 ip -o -4 addr show | grep 10.0.23.4 | awk '{{print $2}}'"  # r3 north
+    cmd4 = "docker exec part1-r3-1 ip -o -4 addr show | grep 10.0.43.4 | awk '{{print $2}}'"  # r3 south
+    
+    # string is eth0, eth1, or eth2
+    e1 = subprocess.check_output(cmd1, shell=True, check=True).decode().strip() 
+    e2 = subprocess.check_output(cmd2, shell=True, check=True).decode().strip() 
+    e3 = subprocess.check_output(cmd3, shell=True, check=True).decode().strip() 
+    e4 = subprocess.check_output(cmd4, shell=True, check=True).decode().strip() 
+    
+    return e1, e2, e3, e4
 
 # Start of program execution
 parser = OptionParser()
@@ -35,10 +48,10 @@ if options.ospf or options.all:
         # install ospf
         subprocess.run(r_cmd + "apt -y install curl", shell=True, check=True, cwd=wdir)
         subprocess.run(r_cmd + "apt -y install gnupg", shell=True, check=True, cwd=wdir)
-        subprocess.run(r_cmd + "curl -s https://deb.frrouting.org/frr/keys.gpg | tee /usr/share/keyrings/frrouting.gpg > /dev/null", shell=True, check=True, cwd=wdir)
+        subprocess.run(r_cmd + "curl -s https://deb.frrouting.org/frr/keys.gpg | sudo tee /usr/share/keyrings/frrouting.gpg > /dev/null", shell=True, check=True, cwd=wdir)
         subprocess.run(r_cmd + "apt install lsb-release", shell=True, check=True, cwd=wdir)
         subprocess.run(r_cmd + "bash -c 'export FRRVER=\"frr-stable\"'", shell=True, check=True, cwd=wdir)
-        subprocess.run(r_cmd + "echo deb '[signed-by=/usr/share/keyrings/frrouting.gpg]' https://deb.frrouting.org/frr $(lsb_release -s -c) $FRRVER | tee -a /etc/apt/sources.list.d/frr.list", shell=True, check=True, cwd=wdir)
+        subprocess.run(r_cmd + "echo deb '[signed-by=/usr/share/keyrings/frrouting.gpg]' https://deb.frrouting.org/frr $(lsb_release -s -c) $FRRVER | sudo tee -a /etc/apt/sources.list.d/frr.list", shell=True, check=True, cwd=wdir)
         subprocess.run(r_cmd + "apt update", shell=True, check=True, cwd=wdir)
         subprocess.run(r_cmd + "apt -y install frr frr-pythontools", shell=True, check=True, cwd=wdir)
         # edit daemon
@@ -58,19 +71,21 @@ if options.ospf or options.all:
         subprocess.run(r_cmd + "vtysh -c 'config' -c 'interface eth1' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
         subprocess.run(r_cmd + "vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
 if options.path == "north":
+    e1, e2, e3, e4 = getEthMappings()
     # r1
-    subprocess.run("sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth1' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
-    subprocess.run("sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run(f"sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface {e1}' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run(f"sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface {e2}' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
     # r3
-    subprocess.run("sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
-    subprocess.run("sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth0' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run(f"sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface {e3}' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run(f"sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface {e4}' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
 if options.path == "south":
+    e1, e2, e3, e4 = getEthMappings()
     # r1
-    subprocess.run("sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth1' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
-    subprocess.run("sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run(f"sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface {e1}' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run(f"sudo docker exec -it part1-r1-1 vtysh -c 'config' -c 'interface {e2}' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
     # r3
-    subprocess.run("sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth2' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
-    subprocess.run("sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface eth0' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run(f"sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface {e3}' -c 'ip ospf cost 10' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
+    subprocess.run(f"sudo docker exec -it part1-r3-1 vtysh -c 'config' -c 'interface {e4}' -c 'ip ospf cost 5' -c 'exit' -c 'exit' -c 'write'", shell=True, check=True, cwd=wdir)
 
     
     
